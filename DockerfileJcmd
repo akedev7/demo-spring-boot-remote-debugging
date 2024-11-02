@@ -1,0 +1,16 @@
+# Use an official Tomcat base image
+FROM tomcat:jdk21-temurin
+
+# Set environment variables for Tomcat
+ENV CATALINA_HOME /usr/local/tomcat
+ENV PATH $CATALINA_HOME/bin:$PATH
+
+# Copy the WAR file from the target directory to the webapps directory of Tomcat
+COPY build/libs/ROOT.war $CATALINA_HOME/webapps/
+COPY config.jfc /config.jfc
+
+# Expose port 8080 for HTTP
+EXPOSE 8080
+
+# Start Tomcat, then start the Flight Recorder using jcmd
+CMD ["catalina.sh", "run"]

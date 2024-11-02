@@ -57,8 +57,6 @@ Port: Set to 8000.
 6. Start the remote debug configuration by selecting it from the Run configurations dropdown and clicking the Debug button (or press Shift + F9).
 
 
-
-
 ## VisualVM Remote Connection Guide
 
 This guide describes how to use VisualVM to connect to a Java application running on localhost at port 9090.
@@ -84,3 +82,33 @@ This guide explains how to connect to a Java application running on localhost an
 5. Click Finish to create the connection.
 6. Once the connection is established, you can use Flight Recorder in JMC to start detailed recordings of your application’s performance (e.g., CPU and memory usage).
    - To capture CPU time on each method calls accurately, you can set **Thread dump** to **Every 1s**. 
+
+## Using jcmd to Perform a Flight Recording
+If you have a JDK installed on your server, you can use the jcmd command to trigger a Flight Recording without adding additional JVM options. Here’s how to use jcmd to start and dump a Flight Recording into a file.
+
+1. Build docker image based on JDK image
+
+```bash
+docker build -f ./DockerfileJcmd -t my-spring-boot-debug-app-test-jcmd .
+```
+
+2. Run the docker image
+```bash
+docker run --name my-spring-boot-app-jcmd -p 8080:8080 my-spring-boot-debug-app-test-jcmd
+```
+
+3. Execute the Profiling Command
+You can run this command in the docker instance to use flight recorder for profiling using config.jfc file
+(**Note**: config.jfc is exported from JMC where you can use flight recorder to record smth and can export the config file from it)
+
+```
+jcmd $(pgrep -f 'org.apache.catalina.startup.Bootstrap') JFR.start name=TomcatRecording settings=/config.jfc filename=/tmp/tomcat-recording.jfr duration=1m
+```
+
+4. Access the Recorded Profile
+
+- Download the profiling result to local machine
+```bash
+docker cp my-spring-boot-app-jcmd:/tmp/tomcat-recording.jfr ./tomcat-recording.jfr
+```
+- Open it on JDK Mission Control to display the profiling information which based on profiling configuration on config.jfc configuration.
